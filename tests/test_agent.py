@@ -5,7 +5,6 @@ import asyncio
 import pytest
 
 from agent_mcp_framework.agent import (
-    Agent,
     AgentContext,
     AgentResult,
     AgentStatus,
@@ -13,7 +12,7 @@ from agent_mcp_framework.agent import (
     LLMAgent,
 )
 
-from .conftest import EchoAgent, FailingAgent
+from .conftest import EchoAgent
 
 
 class TestAgentContext:

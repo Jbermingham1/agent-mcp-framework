@@ -2,7 +2,7 @@
 
 import pytest
 
-from agent_mcp_framework.agent import Agent, AgentContext, AgentResult, FunctionAgent
+from agent_mcp_framework.agent import Agent, AgentContext, AgentResult
 
 
 class EchoAgent(Agent):

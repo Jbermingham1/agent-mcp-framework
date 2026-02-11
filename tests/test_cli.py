@@ -39,6 +39,7 @@ class TestCLI:
         import types
         mod = types.ModuleType("_test_pipeline_mod")
         from agent_mcp_framework.pipeline import SequentialPipeline
+
         from .conftest import CounterAgent
         mod.pipeline = SequentialPipeline("test", agents=[CounterAgent("c")])
         sys.modules["_test_pipeline_mod"] = mod
@@ -54,6 +55,7 @@ class TestCLI:
         import types
         mod = types.ModuleType("_test_pipeline_mod2")
         from agent_mcp_framework.pipeline import SequentialPipeline
+
         from .conftest import CounterAgent
         mod.pipeline = SequentialPipeline("test", agents=[CounterAgent("c")])
         sys.modules["_test_pipeline_mod2"] = mod

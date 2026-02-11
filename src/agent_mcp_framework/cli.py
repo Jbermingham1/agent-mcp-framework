@@ -51,8 +51,12 @@ def serve(module_path: str, transport: str):
 
 @main.command()
 @click.argument("module_path")
-@click.option("--input", "-i", "input_data", default=None, help="JSON input data for the pipeline")
-@click.option("--format", "-f", "output_format", default="text", type=click.Choice(["json", "markdown", "text"]))
+@click.option("--input", "-i", "input_data", default=None, help="JSON input data")
+@click.option(
+    "--format", "-f", "output_format",
+    default="text",
+    type=click.Choice(["json", "markdown", "text"]),
+)
 def run(module_path: str, input_data: str | None, output_format: str):
     """Run a pipeline directly from a Python module.
 

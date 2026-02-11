@@ -82,10 +82,13 @@ class SequentialPipeline(Pipeline):
 
 
 class ParallelPipeline(Pipeline):
-    """Execute agents concurrently. All agents see the same initial context.
+    """Execute agents concurrently with isolated contexts.
 
-    Results are gathered and merged. If `max_concurrency` is set, limits
-    how many agents run simultaneously.
+    Each agent receives a snapshot of the input context to prevent race
+    conditions on shared mutable state. After all agents complete, their
+    contexts are merged back into the original.
+
+    If `max_concurrency` is set, limits how many agents run simultaneously.
     """
 
     def __init__(
@@ -101,16 +104,28 @@ class ParallelPipeline(Pipeline):
         ctx = context or AgentContext()
         start = time.monotonic()
 
+        # Each agent gets an isolated copy to prevent race conditions
+        snapshots = [ctx.model_copy(deep=True) for _ in self.agents]
+
         if self.max_concurrency:
             sem = asyncio.Semaphore(self.max_concurrency)
 
-            async def run_with_sem(agent: Agent) -> AgentResult:
+            async def run_with_sem(agent: Agent, snap: AgentContext) -> AgentResult:
                 async with sem:
-                    return await agent.execute(ctx)
+                    return await agent.execute(snap)
 
-            results = await asyncio.gather(*[run_with_sem(a) for a in self.agents])
+            results = await asyncio.gather(
+                *[run_with_sem(a, s) for a, s in zip(self.agents, snapshots)]
+            )
         else:
-            results = await asyncio.gather(*[a.execute(ctx) for a in self.agents])
+            results = await asyncio.gather(
+                *[a.execute(s) for a, s in zip(self.agents, snapshots)]
+            )
+
+        # Merge snapshot data back into the original context
+        for snap in snapshots:
+            ctx.data.update(snap.data)
+            ctx.errors.extend(e for e in snap.errors if e not in ctx.errors)
 
         results = list(results)
         duration = (time.monotonic() - start) * 1000

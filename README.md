@@ -55,7 +55,6 @@ server.add_pipeline_tool(
     pipeline,
     name="review_code",
     description="Analyze code quality and return a score",
-    parameters={"code": str},
 )
 
 if __name__ == "__main__":

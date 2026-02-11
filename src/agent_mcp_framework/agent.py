@@ -158,6 +158,11 @@ class LLMAgent(Agent):
         if self.system_prompt:
             params["system"] = self.system_prompt
         response = await self.client.messages.create(**params)
+        if not response.content:
+            raise ValueError(
+                f"Empty response from {params['model']} "
+                f"(stop_reason: {response.stop_reason})"
+            )
         return response.content[0].text
 
 

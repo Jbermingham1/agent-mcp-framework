@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 from typing import Any, Callable
 
@@ -22,7 +21,6 @@ class AgentMCPServer:
             my_agent,
             name="analyze",
             description="Analyze code quality",
-            parameters={"path": str},
         )
         server.run()
     """
@@ -39,7 +37,6 @@ class AgentMCPServer:
         agent: Agent,
         name: str | None = None,
         description: str | None = None,
-        parameters: dict[str, type] | None = None,
         context_mapper: Callable[[dict[str, Any]], AgentContext] | None = None,
         output_format: str = "json",
     ) -> AgentMCPServer:
@@ -49,21 +46,13 @@ class AgentMCPServer:
             agent: The agent to expose as a tool.
             name: Tool name (defaults to agent.name).
             description: Tool description (defaults to agent.description).
-            parameters: Dict mapping parameter names to types for the tool schema.
             context_mapper: Function to convert tool params into an AgentContext.
             output_format: How to format the result ("json", "markdown", "text").
         """
         tool_name = name or agent.name
         tool_desc = description or agent.description
         self._agents[tool_name] = agent
-
-        if parameters is None:
-            parameters = {"input": str}
-
         mapper = context_mapper or _default_context_mapper
-
-        # Build a dynamic function with the right signature for FastMCP
-        param_names = list(parameters.keys())
 
         async def tool_handler(**kwargs) -> str:
             ctx = mapper(kwargs)
@@ -83,7 +72,6 @@ class AgentMCPServer:
         pipeline: Pipeline,
         name: str | None = None,
         description: str = "",
-        parameters: dict[str, type] | None = None,
         context_mapper: Callable[[dict[str, Any]], AgentContext] | None = None,
         output_format: str = "json",
     ) -> AgentMCPServer:

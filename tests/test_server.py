@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from agent_mcp_framework.agent import Agent, AgentContext, AgentResult, FunctionAgent
+from agent_mcp_framework.agent import AgentContext, AgentResult
 from agent_mcp_framework.pipeline import PipelineResult, SequentialPipeline
 from agent_mcp_framework.server import AgentMCPServer, format_pipeline_result
 

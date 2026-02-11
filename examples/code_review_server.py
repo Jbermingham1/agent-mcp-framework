@@ -37,7 +37,11 @@ class QualityAnalyzer(Agent):
             issues.append({"severity": "error", "message": "Wildcard imports detected"})
         if any(len(line) > 120 for line in lines):
             issues.append({"severity": "info", "message": "Lines exceed 120 chars"})
-        if not any(line.strip().startswith('"""') or line.strip().startswith("'''") for line in lines):
+        has_docstring = any(
+            line.strip().startswith('"""') or line.strip().startswith("'''")
+            for line in lines
+        )
+        if not has_docstring:
             issues.append({"severity": "info", "message": "No docstrings found"})
 
         context.set("quality_issues", issues)
@@ -156,7 +160,9 @@ class PipelineRunner(Agent):
     async def run(self, context: AgentContext) -> AgentResult:
         await analysis_pipeline.execute(context)
         result = await report_pipeline.execute(context)
-        return result.results[0] if result.results else AgentResult(success=False, error="No report")
+        if result.results:
+            return result.results[0]
+        return AgentResult(success=False, error="No report")
 
 
 pipeline = SequentialPipeline("code-review", agents=[PipelineRunner("runner")])
@@ -167,8 +173,7 @@ server = AgentMCPServer("code-review", description="Multi-agent code review serv
 server.add_pipeline_tool(
     SequentialPipeline("review", agents=[PipelineRunner("runner")]),
     name="review_code",
-    description="Analyze code for quality, security, and architecture issues. Returns a scored report.",
-    parameters={"code": str},
+    description="Analyze code for quality, security, and architecture issues.",
 )
 
 if __name__ == "__main__":

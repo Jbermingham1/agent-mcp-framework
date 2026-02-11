@@ -1,6 +1,5 @@
 """Tests for pipeline module."""
 
-import asyncio
 import time
 
 import pytest
