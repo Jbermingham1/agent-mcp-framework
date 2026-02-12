@@ -1,5 +1,10 @@
 # agent-mcp-framework
 
+[![CI](https://github.com/Jbermingham1/agent-mcp-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Jbermingham1/agent-mcp-framework/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/agent-mcp-framework)](https://pypi.org/project/agent-mcp-framework/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker)](https://github.com/Jbermingham1/agent-mcp-framework/blob/main/Dockerfile)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+
 A Python framework for building multi-agent MCP (Model Context Protocol) servers.
 
 Build production-ready multi-agent systems that expose their capabilities as MCP tools — ready to integrate with Claude, VSCode, and any MCP-compatible client.
@@ -11,6 +16,8 @@ Build production-ready multi-agent systems that expose their capabilities as MCP
 - **MCP integration** — Expose agent pipelines as MCP tools over stdio or SSE
 - **Output formatting** — JSON, Markdown, and plain text output modes
 - **CLI** — Run servers and pipelines from the command line
+- **Docker ready** — Dockerfile, health checks, and AWS ECS Fargate deployment
+- **CI/CD** — GitHub Actions for testing, linting, and deployment
 
 ## Installation
 
@@ -61,6 +68,25 @@ if __name__ == "__main__":
     server.run()  # Starts MCP server on stdio
 ```
 
+## Docker
+
+```bash
+# Build and run locally
+docker compose up --build
+
+# Or build manually
+docker build -t agent-mcp-framework .
+docker run -p 8080:8080 agent-mcp-framework
+```
+
+Health check endpoints:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /` | Service info |
+| `GET /health` | Liveness probe |
+| `GET /ready` | Readiness probe |
+
 ## Agent Types
 
 ### `Agent` — Base class
@@ -93,6 +119,16 @@ agent-mcp run my_project.pipeline --input '{"code": "import *"}'
 # Show framework info
 agent-mcp info
 ```
+
+## Deployment
+
+The project includes full AWS ECS Fargate deployment configuration:
+
+- `Dockerfile` — Multi-stage build with health checks
+- `docker-compose.yml` — Local development
+- `.github/workflows/ci.yml` — CI pipeline (lint, test, Docker build)
+- `.github/workflows/deploy.yml` — CD pipeline (ECR push, ECS deploy)
+- `aws/task-definition.json` — ECS Fargate task definition
 
 ## License
 
