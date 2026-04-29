@@ -7,7 +7,7 @@
 
 A Python framework for building multi-agent MCP (Model Context Protocol) servers.
 
-Build production-ready multi-agent systems that expose their capabilities as MCP tools — ready to integrate with Claude, VSCode, and any MCP-compatible client.
+Compose multi-agent systems with sequential, parallel, conditional, and map-reduce pipeline patterns, agent lifecycle hooks, and structured outputs — and expose the result as MCP tools for Claude, VSCode, or any MCP-compatible client.
 
 ## Features
 
