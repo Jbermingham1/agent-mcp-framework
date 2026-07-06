@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 from typing import Any, Callable
 
@@ -21,6 +22,7 @@ class AgentMCPServer:
             my_agent,
             name="analyze",
             description="Analyze code quality",
+            parameters={"code": str},
         )
         server.run()
     """
@@ -37,6 +39,8 @@ class AgentMCPServer:
         agent: Agent,
         name: str | None = None,
         description: str | None = None,
+        *,
+        parameters: dict[str, type],
         context_mapper: Callable[[dict[str, Any]], AgentContext] | None = None,
         output_format: str = "json",
     ) -> AgentMCPServer:
@@ -46,6 +50,9 @@ class AgentMCPServer:
             agent: The agent to expose as a tool.
             name: Tool name (defaults to agent.name).
             description: Tool description (defaults to agent.description).
+            parameters: The tool's inputs as {param_name: type}. This becomes
+                the JSON schema MCP clients see, so every input the agent reads
+                from context must be declared here.
             context_mapper: Function to convert tool params into an AgentContext.
             output_format: How to format the result ("json", "markdown", "text").
         """
@@ -54,14 +61,13 @@ class AgentMCPServer:
         self._agents[tool_name] = agent
         mapper = context_mapper or _default_context_mapper
 
-        async def tool_handler(**kwargs) -> str:
-            ctx = mapper(kwargs)
+        async def _handle(params: dict[str, Any]) -> str:
+            ctx = mapper(params)
             result = await agent.execute(ctx)
             return format_result(result, output_format)
 
-        # Register with FastMCP
         self._mcp.add_tool(
-            tool_handler,
+            _typed_tool_handler(parameters, _handle),
             name=tool_name,
             description=tool_desc,
         )
@@ -72,22 +78,34 @@ class AgentMCPServer:
         pipeline: Pipeline,
         name: str | None = None,
         description: str = "",
+        *,
+        parameters: dict[str, type],
         context_mapper: Callable[[dict[str, Any]], AgentContext] | None = None,
         output_format: str = "json",
     ) -> AgentMCPServer:
-        """Register a pipeline as an MCP tool."""
+        """Register a pipeline as an MCP tool.
+
+        Args:
+            pipeline: The pipeline to expose as a tool.
+            name: Tool name (defaults to pipeline.name).
+            description: Tool description.
+            parameters: The tool's inputs as {param_name: type} — the JSON
+                schema MCP clients see.
+            context_mapper: Function to convert tool params into an AgentContext.
+            output_format: How to format the result ("json", "markdown", "text").
+        """
         tool_name = name or pipeline.name
         self._pipelines[tool_name] = pipeline
 
         mapper = context_mapper or _default_context_mapper
 
-        async def pipeline_handler(**kwargs) -> str:
-            ctx = mapper(kwargs)
+        async def _handle(params: dict[str, Any]) -> str:
+            ctx = mapper(params)
             result = await pipeline.execute(ctx)
             return format_pipeline_result(result, output_format)
 
         self._mcp.add_tool(
-            pipeline_handler,
+            _typed_tool_handler(parameters, _handle),
             name=tool_name,
             description=description,
         )
@@ -110,6 +128,32 @@ class AgentMCPServer:
 def _default_context_mapper(params: dict[str, Any]) -> AgentContext:
     """Default mapping: put all params into context.data."""
     return AgentContext(data=params)
+
+
+def _typed_tool_handler(
+    parameters: dict[str, type],
+    handle: Callable[[dict[str, Any]], Any],
+) -> Callable[..., Any]:
+    """Build a tool handler whose signature declares `parameters` explicitly.
+
+    FastMCP generates each tool's input schema by inspecting the handler's
+    signature. A bare `**kwargs` handler advertises a single opaque required
+    argument named "kwargs" instead of the tool's real inputs — arguments then
+    never reach the agents. Setting `__signature__` makes the declared
+    parameters the schema clients see, and FastMCP validates calls against it.
+    """
+
+    async def tool_handler(**kwargs):
+        return await handle(kwargs)
+
+    tool_handler.__signature__ = inspect.Signature(  # type: ignore[attr-defined]
+        parameters=[
+            inspect.Parameter(pname, inspect.Parameter.KEYWORD_ONLY, annotation=ptype)
+            for pname, ptype in parameters.items()
+        ],
+    )
+    tool_handler.__annotations__ = dict(parameters)
+    return tool_handler
 
 
 def format_pipeline_result(result: PipelineResult, fmt: str = "json") -> str:

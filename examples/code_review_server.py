@@ -1,6 +1,6 @@
 """Example: Multi-agent code review MCP server.
 
-This demonstrates building a production-ready multi-agent system that:
+This demonstrates building a multi-agent system that:
 1. Analyzes code for quality issues
 2. Checks for security vulnerabilities
 3. Reviews architecture patterns
@@ -174,6 +174,7 @@ server.add_pipeline_tool(
     SequentialPipeline("review", agents=[PipelineRunner("runner")]),
     name="review_code",
     description="Analyze code for quality, security, and architecture issues.",
+    parameters={"code": str},
 )
 
 if __name__ == "__main__":
