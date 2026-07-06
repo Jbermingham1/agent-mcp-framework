@@ -202,7 +202,7 @@ class TestLLMAgent:
                 return AgentResult(success=True)
 
         agent = MyLLM("test")
-        assert agent.model == "claude-sonnet-4-5-20250929"
+        assert agent.model == "claude-sonnet-5"
         assert agent.max_tokens == 4096
 
     def test_custom_model(self):

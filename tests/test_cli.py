@@ -3,6 +3,7 @@
 import pytest
 from click.testing import CliRunner
 
+from agent_mcp_framework import __version__
 from agent_mcp_framework.cli import main
 
 
@@ -15,7 +16,7 @@ class TestCLI:
     def test_version(self, runner):
         result = runner.invoke(main, ["--version"])
         assert result.exit_code == 0
-        assert "0.1.0" in result.output
+        assert __version__ in result.output
 
     def test_info(self, runner):
         result = runner.invoke(main, ["info"])

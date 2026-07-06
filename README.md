@@ -16,8 +16,8 @@ Compose multi-agent systems with sequential, parallel, conditional, and map-redu
 - **MCP integration** — Expose agent pipelines as MCP tools over stdio or SSE
 - **Output formatting** — JSON, Markdown, and plain text output modes
 - **CLI** — Run servers and pipelines from the command line
-- **Docker ready** — Dockerfile, health checks, and AWS ECS Fargate deployment
-- **CI/CD** — GitHub Actions for testing, linting, and deployment
+- **Docker ready** — Dockerfile, docker-compose, and container health checks
+- **CI** — GitHub Actions matrix (Python 3.10–3.13): lint, tests, Docker build
 
 ## Installation
 
@@ -62,6 +62,7 @@ server.add_pipeline_tool(
     pipeline,
     name="review_code",
     description="Analyze code quality and return a score",
+    parameters={"code": str},  # the input schema MCP clients see
 )
 
 if __name__ == "__main__":
@@ -120,15 +121,11 @@ agent-mcp run my_project.pipeline --input '{"code": "import *"}'
 agent-mcp info
 ```
 
-## Deployment
-
-The project includes full AWS ECS Fargate deployment configuration:
+## Project Infrastructure
 
 - `Dockerfile` — Multi-stage build with health checks
 - `docker-compose.yml` — Local development
 - `.github/workflows/ci.yml` — CI pipeline (lint, test, Docker build)
-- `.github/workflows/deploy.yml` — CD pipeline (ECR push, ECS deploy)
-- `aws/task-definition.json` — ECS Fargate task definition
 
 ## License
 

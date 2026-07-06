@@ -125,6 +125,7 @@ class ParallelPipeline(Pipeline):
         # Merge snapshot data back into the original context
         for snap in snapshots:
             ctx.data.update(snap.data)
+            ctx.metadata.update(snap.metadata)
             ctx.errors.extend(e for e in snap.errors if e not in ctx.errors)
 
         results = list(results)

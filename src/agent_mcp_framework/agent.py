@@ -129,7 +129,7 @@ class LLMAgent(Agent):
         self,
         name: str,
         description: str = "",
-        model: str = "claude-sonnet-4-5-20250929",
+        model: str = "claude-sonnet-5",
         system_prompt: str = "",
         max_tokens: int = 4096,
     ):

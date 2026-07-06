@@ -17,15 +17,15 @@ RUN pip wheel --no-deps --wheel-dir /wheels .
 # Stage 2: Runtime
 FROM python:3.12-slim AS runtime
 
-LABEL maintainer="Jarrad Bermingham <jarrad@steadwise.ai>"
+LABEL maintainer="Jarrad Bermingham <jarrad.bermingham98@gmail.com>"
 LABEL org.opencontainers.image.source="https://github.com/Jbermingham1/agent-mcp-framework"
 LABEL org.opencontainers.image.description="Multi-agent MCP pipeline framework"
 
 WORKDIR /app
 
-# Install the built wheel + runtime dependencies
+# Install the built wheel + the serve extra (starlette/uvicorn for health endpoints)
 COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir /wheels/*.whl && rm -rf /wheels
+RUN pip install --no-cache-dir "$(echo /wheels/*.whl)[serve]" && rm -rf /wheels
 
 # Copy entrypoint
 COPY docker-entrypoint.py .

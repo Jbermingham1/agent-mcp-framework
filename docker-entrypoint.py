@@ -1,6 +1,7 @@
 """Entrypoint for containerized deployment.
 
-Runs the health check HTTP server with the framework's demo pipeline.
+Serves the container health endpoints (/, /health, /ready) used by
+Docker and orchestrator probes. Requires the `serve` extra.
 """
 
 import os

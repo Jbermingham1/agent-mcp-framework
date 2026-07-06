@@ -12,7 +12,7 @@ from starlette.routing import Route
 
 def create_health_app(
     service_name: str = "agent-mcp-framework",
-    version: str = "0.1.0",
+    version: str = "unknown",
 ) -> Starlette:
     """Create a Starlette app with health check endpoints.
 
